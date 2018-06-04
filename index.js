@@ -3,12 +3,13 @@ const fs = require('fs')
 const os = require('os')
 const path = require('path')
 const jpegAutorotate = require('jpeg-autorotate')
+const config = require('./config')
 require('isomorphic-fetch')
 
 const getFiles = () => {
   return new Promise((resolve, reject) => {
     let dbx = new Dropbox({
-      accessToken: 'TOKEN'
+      accessToken: config.dropboxToken
     })
     dbx.filesListFolder({
       path: '/apps/sherlock_photos'
@@ -101,5 +102,5 @@ getFiles()
     console.log(`success in ${fileName}`)
   })
   .catch((reason) => {
-    console.error('Failure reason: ' + reason)
+    console.error(`Failure reason: ${JSON.stringify(reason)}`)
   })
