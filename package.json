@@ -1,0 +1,19 @@
+{
+  "name": "sherlock_photos_ingester",
+  "version": "1.0.0",
+  "description": "Ingester for photos from Dropbox",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com-daisuke:dfujiwara/sherlock_photos_ingester.git"
+  },
+  "author": "Daisuke Fujiwara (daisuke.fujiwara@gmail.com)",
+  "license": "MIT",
+  "dependencies": {
+    "dropbox": "^4.0.5",
+    "isomorphic-fetch": "^2.2.1"
+  }
+}
