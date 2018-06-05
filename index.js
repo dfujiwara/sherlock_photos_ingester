@@ -4,6 +4,7 @@ const os = require('os')
 const path = require('path')
 const jpegAutorotate = require('jpeg-autorotate')
 const config = require('./config')
+const Storage = require('@google-cloud/storage');
 require('isomorphic-fetch')
 
 const getFiles = () => {
@@ -82,6 +83,15 @@ const savePhotoLocally = ({
   })
 }
 
+const savePhotoInCloud = (localFileName) => {
+  const storage = new Storage({
+    projectId: config.projectId
+  })
+  return storage
+    .bucket(config.storageBucketName)
+    .upload(localFileName)
+}
+
 let photoData = {}
 getFiles()
   .then(({ url, contentHash }) => {
@@ -99,7 +109,10 @@ getFiles()
     })
   })
   .then((fileName) => {
-    console.log(`success in ${fileName}`)
+    return savePhotoInCloud(fileName)
+  })
+  .then(() => {
+    console.log('success!')
   })
   .catch((reason) => {
     console.error(`Failure reason: ${JSON.stringify(reason)}`)
