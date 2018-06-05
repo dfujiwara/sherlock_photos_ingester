@@ -13,6 +13,7 @@
   "author": "Daisuke Fujiwara (daisuke.fujiwara@gmail.com)",
   "license": "MIT",
   "dependencies": {
+    "@google-cloud/storage": "^1.7.0",
     "dropbox": "^4.0.5",
     "eslint": "^4.19.1",
     "isomorphic-fetch": "^2.2.1",
