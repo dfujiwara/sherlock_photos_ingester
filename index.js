@@ -4,7 +4,7 @@ const os = require('os')
 const path = require('path')
 const jpegAutorotate = require('jpeg-autorotate')
 const config = require('./config')
-const Storage = require('@google-cloud/storage');
+const Storage = require('@google-cloud/storage')
 require('isomorphic-fetch')
 
 const getFiles = () => {
@@ -98,9 +98,27 @@ const savePhotoInCloud = (localFileName) => {
   const storage = new Storage({
     projectId: config.projectId
   })
-  return storage
-    .bucket(config.storageBucketName)
-    .upload(localFileName)
+  return new Promise((resolve, reject) => {
+    storage
+      .bucket(config.storageBucketName)
+      .upload(localFileName)
+      .then(() => {
+        resolve(localFileName)
+      })
+  })
+}
+
+const cleanUpLocalPhoto = (localFileName) => {
+  console.log(`Removing photo at ${localFileName}`)
+  return new Promise((resolve, reject) => {
+    fs.unlink(localFileName, (err) => {
+      if (err) {
+        reject(err)
+        return
+      }
+      resolve(localFileName)
+    })
+  })
 }
 
 let photoData = {}
@@ -133,6 +151,12 @@ getFiles()
       return savePhotoInCloud(fileName)
     })
     return Promise.all(cloudPhotoSavePromises)
+  })
+  .then((fileNames) => {
+    const removePromises = fileNames.map((fileName) => {
+      return cleanUpLocalPhoto(fileName)
+    })
+    return Promise.all(removePromises)
   })
   .then(() => {
     console.log('success!')
