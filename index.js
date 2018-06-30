@@ -26,7 +26,11 @@ const getFiles = () => {
       })
       .then((responses) => {
         const fileObjects = responses.map((response) => {
-          return {url: response.link, contentHash: response.metadata.content_hash}
+          return {
+            url: response.link,
+            contentHash: response.metadata.content_hash,
+            path: response.metadata.path_lower
+          }
         })
         resolve(fileObjects)
       })
@@ -109,11 +113,22 @@ const cleanUpLocalPhoto = (localFileName) => {
   })
 }
 
+const removeFiles = (paths) => {
+  let entries = paths.map((path) => {
+    console.log(`Remove photo at ${path} on Dropbox`)
+    return {path}
+  })
+  let dbx = new Dropbox({
+    accessToken: config.dropboxToken
+  })
+  return dbx.filesDeleteBatch({entries})
+}
+
 let photoData = {}
 getFiles()
   .then((fileObjects) => {
-    const photoPromises = fileObjects.map(({url, contentHash}) => {
-      photoData[url] = contentHash
+    const photoPromises = fileObjects.map(({url, contentHash, path}) => {
+      photoData[url] = {contentHash, path}
       return fetchPhoto(url)
     })
     return Promise.all(photoPromises)
@@ -125,9 +140,10 @@ getFiles()
   .then((photoBuffers) => {
     const localPhotoSavePromises = photoBuffers.map((photoBufferObject) => {
       const url = photoBufferObject.url
+      const urlPhotoData = photoData[url]
       return savePhotoLocally({
         buffer: photoBufferObject.buffer,
-        contentHash: photoData[url]
+        contentHash: urlPhotoData.contentHash
       })
     })
     return Promise.all(localPhotoSavePromises)
@@ -139,6 +155,10 @@ getFiles()
   .then((fileNames) => {
     const removePromises = fileNames.map((fileName) => cleanUpLocalPhoto(fileName))
     return Promise.all(removePromises)
+  })
+  .then(() => {
+    const paths = Object.values(photoData).map(({path}) => path)
+    return removeFiles(paths)
   })
   .then(() => console.log('success!'))
   .catch((reason) => {
