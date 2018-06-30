@@ -16,18 +16,12 @@ const getFiles = () => {
       path: '/apps/sherlock_photos'
     })
       .then((response) => {
-        const paths = response.entries.map((metadataEntry) => {
-          return metadataEntry.path_lower
-        })
+        const paths = response.entries.map((metadataEntry) => metadataEntry.path_lower)
         if (paths.length === 0) {
           reject(new Error('None found'))
           return
         }
-        const promises = paths.map((path) => {
-          return dbx.filesGetTemporaryLink({
-            path: path
-          })
-        })
+        const promises = paths.map((path) => dbx.filesGetTemporaryLink({path: path}))
         return Promise.all(promises)
       })
       .then((responses) => {
@@ -53,12 +47,8 @@ const fetchPhoto = (url) => {
         }
         return response.buffer()
       })
-      .then((buffer) => {
-        resolve({url: url, buffer: buffer})
-      })
-      .catch((reason) => {
-        reject(reason)
-      })
+      .then((buffer) => resolve({url: url, buffer: buffer}))
+      .catch((reason) => reject(reason))
   })
 }
 
@@ -102,9 +92,7 @@ const savePhotoInCloud = (localFileName) => {
     storage
       .bucket(config.storageBucketName)
       .upload(localFileName)
-      .then(() => {
-        resolve(localFileName)
-      })
+      .then(() => resolve(localFileName))
   })
 }
 
@@ -131,9 +119,7 @@ getFiles()
     return Promise.all(photoPromises)
   })
   .then((photoBuffers) => {
-    const rotatedPhotoPromises = photoBuffers.map((photoBufferObject) => {
-      return rotatePhoto(photoBufferObject)
-    })
+    const rotatedPhotoPromises = photoBuffers.map((photoBufferObject) => rotatePhoto(photoBufferObject))
     return Promise.all(rotatedPhotoPromises)
   })
   .then((photoBuffers) => {
@@ -147,21 +133,14 @@ getFiles()
     return Promise.all(localPhotoSavePromises)
   })
   .then((fileNames) => {
-    const cloudPhotoSavePromises = fileNames.map((fileName) => {
-      return savePhotoInCloud(fileName)
-    })
+    const cloudPhotoSavePromises = fileNames.map((fileName) => savePhotoInCloud(fileName))
     return Promise.all(cloudPhotoSavePromises)
   })
   .then((fileNames) => {
-    const removePromises = fileNames.map((fileName) => {
-      return cleanUpLocalPhoto(fileName)
-    })
+    const removePromises = fileNames.map((fileName) => cleanUpLocalPhoto(fileName))
     return Promise.all(removePromises)
   })
-  .then(() => {
-    console.log('success!')
-  })
+  .then(() => console.log('success!'))
   .catch((reason) => {
-    console.error(`Failure reason: ${reason}`)
-    console.error(`Failure reason: ${JSON.stringify(reason)}`)
+    console.error(`Failure reason: ${reason}, ${JSON.stringify(reason)}`)
   })
