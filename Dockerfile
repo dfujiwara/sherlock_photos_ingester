@@ -6,4 +6,4 @@ COPY keys.json /app
 COPY run.sh /app
 
 RUN npm install
-CMD ["/bin/bash", "/app/run.sh"]
+ENTRYPOINT ["/bin/bash", "/app/run.sh"]
