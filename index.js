@@ -61,7 +61,7 @@ const rotatePhoto = ({url, buffer}) => {
   return new Promise((resolve, reject) => {
     const options = {quality: 85}
     jpegAutorotate.rotate(buffer, options, (error, buffer, orientation, dimensions) => {
-      if (error) {
+      if (error && error.code !== 'correct_orientation') {
         reject(error)
         return
       }
