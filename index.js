@@ -10,7 +10,8 @@ require('isomorphic-fetch')
 const getFiles = () => {
   return new Promise((resolve, reject) => {
     let dbx = new Dropbox({
-      accessToken: config.dropboxToken
+      accessToken: config.dropboxToken,
+      fetch: fetch
     })
     dbx.filesListFolder({
       path: '/apps/sherlock_photos'
@@ -119,7 +120,8 @@ const removeFiles = (paths) => {
     return {path}
   })
   let dbx = new Dropbox({
-    accessToken: config.dropboxToken
+    accessToken: config.dropboxToken,
+    fetch: fetch
   })
   return dbx.filesDeleteBatch({entries})
 }
