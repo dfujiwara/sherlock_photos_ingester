@@ -60,7 +60,7 @@ const fetchPhoto = (url) => {
 const rotatePhoto = ({url, buffer}) => {
   console.log(`Rotating photos from ${url}`)
   return new Promise((resolve, reject) => {
-    const options = {quality: 85}
+    const options = {quality: 50}
     jpegAutorotate.rotate(buffer, options, (error, buffer, orientation, dimensions) => {
       if (error && error.code !== 'correct_orientation') {
         reject(error)
