@@ -26,13 +26,21 @@ const getFiles = () => {
         return Promise.all(promises)
       })
       .then((responses) => {
-        const fileObjects = responses.map((response) => {
-          return {
-            url: response.link,
-            contentHash: response.metadata.content_hash,
-            path: response.metadata.path_lower
-          }
-        })
+        let contentHashSet = new Set()
+        const fileObjects = responses
+          .map((response) => {
+            const contentHash = response.metadata.content_hash
+            if (contentHashSet.has(response.metadata.content_hash)) {
+              return null
+            }
+            contentHashSet.add(contentHash)
+            return {
+              url: response.link,
+              contentHash: contentHash,
+              path: response.metadata.path_lower
+            }
+          })
+          .filter((fileObject) => fileObject !== null)
         resolve(fileObjects)
       })
       .catch((reason) => {
