@@ -6,6 +6,7 @@ COPY *.js /app/
 COPY package.json /app
 COPY keys.json /app
 COPY run.sh /app
+RUN chmod 0555 /app/run.sh
 
 RUN npm install
 

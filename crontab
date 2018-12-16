@@ -1,1 +1,1 @@
-* * * * * root PATH=/usr/local/bin:$PATH /app/run.sh >> /var/log/cron.log 2>&1
+5 * * * * root PATH=/usr/local/bin:$PATH /app/run.sh >> /var/log/cron.log 2>&1
