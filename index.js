@@ -6,6 +6,8 @@ const jpegAutorotate = require('jpeg-autorotate')
 const config = require('./config')
 const Storage = require('@google-cloud/storage')
 require('isomorphic-fetch')
+const log = require('simple-node-logger').createSimpleLogger()
+log.setLevel('all')
 
 const getFiles = () => {
   return new Promise((resolve, reject) => {
@@ -50,7 +52,7 @@ const getFiles = () => {
 }
 
 const fetchPhoto = (url) => {
-  console.log(`Fetching ${url}`)
+  log.trace(`Fetching ${url}`)
   return new Promise((resolve, reject) => {
     fetch(url)
       .then((response) => {
@@ -66,7 +68,7 @@ const fetchPhoto = (url) => {
 }
 
 const rotatePhoto = ({url, buffer}) => {
-  console.log(`Rotating photos from ${url}`)
+  log.trace(`Rotating photos from ${url}`)
   return new Promise((resolve, reject) => {
     const options = {quality: 25}
     jpegAutorotate.rotate(buffer, options, (error, buffer, orientation, dimensions) => {
@@ -83,7 +85,7 @@ const savePhotoLocally = ({
   buffer,
   contentHash
 }) => {
-  console.log(`Saving photos with content hash of ${contentHash}`)
+  log.trace(`Saving photos with content hash of ${contentHash}`)
   return new Promise((resolve, reject) => {
     const fileName = path.join(os.tmpdir(), contentHash)
     fs.writeFile(fileName, buffer, (err) => {
@@ -97,7 +99,7 @@ const savePhotoLocally = ({
 }
 
 const savePhotoInCloud = (localFileName) => {
-  console.log(`Saving photos in cloud from ${localFileName}`)
+  log.trace(`Saving photos in cloud from ${localFileName}`)
   const storage = new Storage({
     projectId: config.projectId
   })
@@ -110,7 +112,7 @@ const savePhotoInCloud = (localFileName) => {
 }
 
 const cleanUpLocalPhoto = (localFileName) => {
-  console.log(`Removing photo at ${localFileName}`)
+  log.trace(`Removing photo at ${localFileName}`)
   return new Promise((resolve, reject) => {
     fs.unlink(localFileName, (err) => {
       if (err) {
@@ -124,7 +126,7 @@ const cleanUpLocalPhoto = (localFileName) => {
 
 const removeFiles = (paths) => {
   let entries = paths.map((path) => {
-    console.log(`Remove photo at ${path} on Dropbox`)
+    log.trace(`Remove photo at ${path} on Dropbox`)
     return {path}
   })
   let dbx = new Dropbox({
@@ -170,7 +172,7 @@ getFiles()
     const paths = Object.values(photoData).map(({path}) => path)
     return removeFiles(paths)
   })
-  .then(() => console.log('success!'))
+  .then(() => log.info('success!'))
   .catch((reason) => {
-    console.error(`Failure reason: ${reason}, ${JSON.stringify(reason)}`)
+    log.error(`Failure reason: ${reason}, ${JSON.stringify(reason)}`)
   })
