@@ -6,8 +6,7 @@ const jpegAutorotate = require('jpeg-autorotate')
 const config = require('./config')
 const Storage = require('@google-cloud/storage')
 require('isomorphic-fetch')
-const log = require('simple-node-logger').createSimpleLogger()
-log.setLevel('all')
+const log = require('simple-node-logger').createSimpleLogger({level: 'all'})
 
 const getFiles = () => {
   return new Promise((resolve, reject) => {
