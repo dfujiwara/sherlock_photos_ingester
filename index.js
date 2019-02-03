@@ -20,8 +20,7 @@ const getFiles = () => {
       .then((response) => {
         const paths = response.entries.map((metadataEntry) => metadataEntry.path_lower)
         if (paths.length === 0) {
-          reject(new Error('None found'))
-          return
+          return Promise.all([])
         }
         const promises = paths.map((path) => dbx.filesGetTemporaryLink({path: path}))
         return Promise.all(promises)
@@ -70,8 +69,9 @@ const rotatePhoto = ({url, buffer}) => {
   log.trace(`Rotating photos from ${url}`)
   return new Promise((resolve, reject) => {
     const options = {quality: 15}
+    const dismissableErrorSet = new Set(['correct_orientation', 'no_orientation'])
     jpegAutorotate.rotate(buffer, options, (error, buffer, orientation, dimensions) => {
-      if (error && error.code !== 'correct_orientation') {
+      if (error && !dismissableErrorSet.has(error.code)) {
         reject(error)
         return
       }
@@ -135,43 +135,28 @@ const removeFiles = (paths) => {
   return dbx.filesDeleteBatch({entries})
 }
 
-let photoData = {}
+const processPhotoFile = async (fileObject) => {
+  const { url, contentHash, path } = fileObject
+  try {
+    const photoBuffer = await fetchPhoto(url)
+    const rotatedPhotoBuffer = await rotatePhoto(photoBuffer)
+    const localFileName = await savePhotoLocally({
+      buffer: rotatedPhotoBuffer.buffer,
+      contentHash: contentHash
+    })
+    await savePhotoInCloud(localFileName)
+    await cleanUpLocalPhoto(localFileName)
+    await removeFiles([path])
+  } catch(reason) {
+    log.error(`Failed to process ${path}: ${reason}, ${JSON.stringify(reason)}`)
+  }
+}
+
 getFiles()
   .then((fileObjects) => {
-    const photoPromises = fileObjects.map(({url, contentHash, path}) => {
-      photoData[url] = {contentHash, path}
-      return fetchPhoto(url)
+    const photoPromises = fileObjects.map((fileObject) => {
+      return processPhotoFile(fileObject)
     })
     return Promise.all(photoPromises)
   })
-  .then((photoBuffers) => {
-    const rotatedPhotoPromises = photoBuffers.map((photoBufferObject) => rotatePhoto(photoBufferObject))
-    return Promise.all(rotatedPhotoPromises)
-  })
-  .then((photoBuffers) => {
-    const localPhotoSavePromises = photoBuffers.map((photoBufferObject) => {
-      const url = photoBufferObject.url
-      const urlPhotoData = photoData[url]
-      return savePhotoLocally({
-        buffer: photoBufferObject.buffer,
-        contentHash: urlPhotoData.contentHash
-      })
-    })
-    return Promise.all(localPhotoSavePromises)
-  })
-  .then((fileNames) => {
-    const cloudPhotoSavePromises = fileNames.map((fileName) => savePhotoInCloud(fileName))
-    return Promise.all(cloudPhotoSavePromises)
-  })
-  .then((fileNames) => {
-    const removePromises = fileNames.map((fileName) => cleanUpLocalPhoto(fileName))
-    return Promise.all(removePromises)
-  })
-  .then(() => {
-    const paths = Object.values(photoData).map(({path}) => path)
-    return removeFiles(paths)
-  })
   .then(() => log.info('success!'))
-  .catch((reason) => {
-    log.error(`Failure reason: ${reason}, ${JSON.stringify(reason)}`)
-  })
