@@ -5,13 +5,8 @@ const path = require('path')
 const jpegAutorotate = require('jpeg-autorotate')
 const config = require('./config')
 const Storage = require('@google-cloud/storage')
+const log = require('./log')
 require('isomorphic-fetch')
-
-const opts = {
-  level: 'all',
-  timestampFormat:'YYYY-MM-DD HH:mm:ss.SSS'
-}
-const log = require('simple-node-logger').createSimpleLogger(opts)
 
 const getFiles = () => {
   return new Promise((resolve, reject) => {
@@ -152,7 +147,7 @@ const processPhotoFile = async (fileObject) => {
     await savePhotoInCloud(localFileName)
     await cleanUpLocalPhoto(localFileName)
     await removeFiles([path])
-  } catch(reason) {
+  } catch (reason) {
     log.error(`Failed to process ${path}: ${reason}, ${JSON.stringify(reason)}`)
   }
 }
