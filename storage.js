@@ -7,17 +7,17 @@ const Storage = require('@google-cloud/storage')
 
 const saveFileLocally = ({
   buffer,
-  contentHash
+  fileName
 }) => {
-  log.trace(`Saving file with content hash of ${contentHash}`)
+  log.trace(`Saving file with the name of ${fileName}`)
   return new Promise((resolve, reject) => {
-    const fileName = path.join(os.tmpdir(), contentHash)
-    fs.writeFile(fileName, buffer, (err) => {
+    const filePath = path.join(os.tmpdir(), fileName)
+    fs.writeFile(filePath, buffer, (err) => {
       if (err) {
         reject(err)
         return
       }
-      resolve(fileName)
+      resolve(filePath)
     })
   })
 }

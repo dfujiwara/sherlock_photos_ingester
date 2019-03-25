@@ -39,12 +39,13 @@ const processPhotoFile = async (fileObject) => {
   try {
     const photoBuffer = await fetchPhoto(url)
     const rotatedPhotoBuffer = await rotatePhoto(photoBuffer)
-    const localFileName = await storage.saveFileLocally({
+    const fileName = `${contentHash}.jpg`
+    const localFilePath = await storage.saveFileLocally({
       buffer: rotatedPhotoBuffer.buffer,
-      contentHash: contentHash
+      fileName: fileName
     })
-    await storage.saveFileInCloud(localFileName)
-    await storage.cleanUpLocalFile(localFileName)
+    await storage.saveFileInCloud(localFilePath)
+    await storage.cleanUpLocalFile(localFilePath)
   } catch (reason) {
     log.error(`Failed to process ${path}: ${reason}, ${JSON.stringify(reason)}`)
     throw reason
