@@ -3,6 +3,12 @@ let Dropbox = require('dropbox').Dropbox
 const log = require('./log')
 require('isomorphic-fetch')
 
+const MediaTypes = {
+  photo: 'photo',
+  video: 'video'
+}
+Object.freeze(MediaTypes)
+
 const getFiles = () => {
   return new Promise((resolve, reject) => {
     let dbx = new Dropbox({
@@ -10,20 +16,25 @@ const getFiles = () => {
       fetch: fetch
     })
     dbx.filesListFolder({
-      path: '/apps/sherlock_photos'
+      path: '/apps/sherlock_photos',
+      include_media_info: true
     })
       .then((response) => {
-        const paths = response.entries.map((metadataEntry) => metadataEntry.path_lower)
-        if (paths.length === 0) {
+        if (response.entries.length === 0) {
           return Promise.all([])
         }
-        const promises = paths.map((path) => dbx.filesGetTemporaryLink({path: path}))
+        const promises = response.entries.map((metadataEntry) => {
+          return dbx.filesGetTemporaryLink({path: metadataEntry.path_lower})
+            .then((response) => {
+              return { response, metadataEntry }
+            })
+        })
         return Promise.all(promises)
       })
       .then((responses) => {
         let contentHashSet = new Set()
         const fileObjects = responses
-          .map((response) => {
+          .map(({ response, metadataEntry }) => {
             const contentHash = response.metadata.content_hash
             if (contentHashSet.has(response.metadata.content_hash)) {
               return null
@@ -32,7 +43,8 @@ const getFiles = () => {
             return {
               url: response.link,
               contentHash: contentHash,
-              path: response.metadata.path_lower
+              path: response.metadata.path_lower,
+              type: parseMediaType(metadataEntry.media_info || {})
             }
           })
           .filter((fileObject) => fileObject !== null)
@@ -44,9 +56,16 @@ const getFiles = () => {
   })
 }
 
+const parseMediaType = (mediaInfo) => {
+  if (mediaInfo.metadata === undefined) {
+    return MediaTypes.photo
+  }
+  return mediaInfo.metadata['.tag'] === MediaTypes.video ? MediaTypes.video : MediaTypes.photo
+}
+
 const removeFiles = (paths) => {
   let entries = paths.map((path) => {
-    log.trace(`Remove photo at ${path} on Dropbox`)
+    log.trace(`Remove file at ${path} on Dropbox`)
     return {path}
   })
   let dbx = new Dropbox({
@@ -57,6 +76,7 @@ const removeFiles = (paths) => {
 }
 
 module.exports = {
+  MediaTypes,
   getFiles,
   removeFiles
 }
