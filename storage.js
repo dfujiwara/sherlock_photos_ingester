@@ -3,7 +3,7 @@ const fs = require('fs')
 const log = require('./log')
 const os = require('os')
 const path = require('path')
-const Storage = require('@google-cloud/storage')
+const { Storage } = require('@google-cloud/storage')
 
 const saveFileLocally = ({
   buffer,
