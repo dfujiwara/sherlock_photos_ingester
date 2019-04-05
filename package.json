@@ -4,7 +4,8 @@
   "description": "Ingester for photos from Dropbox",
   "main": "index.js",
   "scripts": {
-    "test": "test"
+    "test": "test",
+    "lint": "./node_modules/.bin/eslint *.js"
   },
   "repository": {
     "type": "git",
