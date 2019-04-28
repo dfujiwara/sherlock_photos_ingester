@@ -1,6 +1,6 @@
-const dropbox = require('./dropbox')
-const log = require('./log')
-const photos = require('./photos')
+const dropbox = require('./src/dropbox')
+const log = require('./src/log')
+const photos = require('./src/photos')
 
 const run = () => {
   dropbox.getFiles()
