@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "test",
-    "lint": "./node_modules/.bin/eslint *.js"
+    "lint": "./node_modules/.bin/eslint *.js",
+    "build": "docker build -t cron .",
+    "start": "docker stop ingester && docker run -itd --rm --name ingester cron"
   },
   "repository": {
     "type": "git",
