@@ -58,7 +58,7 @@ const getFiles = () => {
 
 const parseMediaType = (mediaInfo) => {
   if (mediaInfo.metadata === undefined) {
-    return MediaTypes.photo
+    throw new Error(`Invalid media info metadata: ${mediaInfo.metadata}`)
   }
   return mediaInfo.metadata['.tag'] === MediaTypes.video ? MediaTypes.video : MediaTypes.photo
 }
