@@ -25,6 +25,7 @@ const process = async (fileObject) => {
         dropbox.removeFiles([fileObject.path])
         break
       default:
+        log.error(`Unexpected file type: ${fileObject.path}`)
         break
     }
   } catch (error) {
