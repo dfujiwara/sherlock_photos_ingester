@@ -23,7 +23,8 @@ const getFiles = async () => {
   }
   const responsePairs = await Promise.all(response.entries.map(async (metadataEntry) => {
     const linkResponse = await dbx.filesGetTemporaryLink({path: metadataEntry.path_lower})
-    return { linkResponse, metadataEntry }
+    const fileMetadata = await dbx.filesGetMetadata({path: metadataEntry.path_lower, include_media_info: true})
+    return { linkResponse, metadataEntry: fileMetadata }
   }))
 
   let contentHashSet = new Set()
